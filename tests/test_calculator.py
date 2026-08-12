@@ -1,10 +1,9 @@
-"""Tests for winch calculator core logic."""
-
-import math
+"""Tests for winch calculator core logic and unit conversions."""
 
 import pytest
 
 from winch_calc.calculator import (
+    damage_resistance,
     effective_pull,
     gradient_resistance,
     is_winch_sufficient,
@@ -23,74 +22,96 @@ class TestSurfaces:
     def test_get_all_surface_names(self):
         names = get_surface_names()
         assert len(names) > 0
-        assert "tarmac" in names
-        assert "deep_mud" in names
+        assert "smooth_road" in names
+        assert "bog_axle" in names
 
     def test_get_valid_coefficient(self):
-        assert get_coefficient("tarmac") == 0.01
-        assert get_coefficient("deep_mud") == 0.5
+        assert get_coefficient("smooth_road") == pytest.approx(1 / 25)
+        assert get_coefficient("bog_axle") == pytest.approx(1.0)
 
     def test_get_invalid_coefficient(self):
         with pytest.raises(ValueError, match="Unknown surface"):
             get_coefficient("lava")
 
     def test_coefficients_increase_with_difficulty(self):
-        assert get_coefficient("tarmac") < get_coefficient("firm_grass")
-        assert get_coefficient("firm_grass") < get_coefficient("wet_grass")
-        assert get_coefficient("wet_grass") < get_coefficient("shallow_mud")
-        assert get_coefficient("shallow_mud") < get_coefficient("deep_mud")
+        assert get_coefficient("smooth_road") < get_coefficient("grass_min")
+        assert get_coefficient("grass_min") < get_coefficient("grass_max")
+        assert get_coefficient("grass_max") < get_coefficient("mud_min")
+        assert get_coefficient("mud_min") < get_coefficient("bog_axle")
 
 
 class TestRollingResistance:
-    def test_tarmac(self):
-        # 2000kg vehicle on tarmac = 20kg resistance
-        assert rolling_resistance(2000, "tarmac") == pytest.approx(20.0)
+    def test_smooth_road(self):
+        # 2500kg vehicle on smooth road = 2500/25 = 100kg
+        assert rolling_resistance(2500, "smooth_road") == pytest.approx(100.0)
 
-    def test_deep_mud(self):
-        # 2000kg vehicle in deep mud = 1000kg resistance
-        assert rolling_resistance(2000, "deep_mud") == pytest.approx(1000.0)
+    def test_bog_axle(self):
+        # 2000kg vehicle bogged to axle = 2000×1 = 2000kg
+        assert rolling_resistance(2000, "bog_axle") == pytest.approx(2000.0)
 
     def test_zero_weight(self):
-        assert rolling_resistance(0, "tarmac") == 0.0
+        assert rolling_resistance(0, "smooth_road") == 0.0
 
-    def test_heavy_vehicle_in_bog(self):
-        # 3500kg Land Rover in bog = 2625kg resistance
-        assert rolling_resistance(3500, "bog") == pytest.approx(2625.0)
+    def test_heavy_vehicle_in_bog_radiator(self):
+        # 3500kg in bog to radiator = 3500×3 = 10500kg
+        assert rolling_resistance(3500, "bog_radiator") == pytest.approx(10500.0)
+
+
+class TestDamageResistance:
+    def test_no_damage(self):
+        assert damage_resistance(2500, 0, 4) == pytest.approx(0.0)
+
+    def test_one_wheel(self):
+        assert damage_resistance(2500, 1, 4) == pytest.approx(625.0)
+
+    def test_all_wheels(self):
+        assert damage_resistance(2500, 4, 4) == pytest.approx(2500.0)
+
+    def test_invalid_negative(self):
+        with pytest.raises(ValueError, match="cannot be negative"):
+            damage_resistance(2500, -1, 4)
+
+    def test_invalid_exceeds_total(self):
+        with pytest.raises(ValueError, match="cannot exceed"):
+            damage_resistance(2500, 5, 4)
 
 
 class TestGradientResistance:
     def test_flat(self):
         assert gradient_resistance(2000, 0) == pytest.approx(0.0)
 
-    def test_uphill_45_degrees(self):
-        # sin(45°) ≈ 0.707
-        expected = 2000 * math.sin(math.radians(45))
-        assert gradient_resistance(2000, 45) == pytest.approx(expected)
+    def test_10_degree_slope(self):
+        # IVR: W/60 × 10 = 2000/60 × 10 = 333.33
+        assert gradient_resistance(2000, 10) == pytest.approx(2000 / 60 * 10)
 
     def test_downhill_reduces_resistance(self):
         result = gradient_resistance(2000, -10)
         assert result < 0
 
-    def test_steep_slope(self):
-        # 30° slope: sin(30°) = 0.5, so 2000 * 0.5 = 1000
+    def test_30_degree_slope(self):
+        # IVR: W/60 × 30 = 2000/60 × 30 = 1000
         assert gradient_resistance(2000, 30) == pytest.approx(1000.0)
 
 
 class TestTotalResistance:
-    def test_flat_surface(self):
-        # Just rolling resistance on flat ground
-        result = total_resistance(2000, "deep_mud", 0)
-        assert result == pytest.approx(1000.0)
+    def test_flat_surface_no_damage(self):
+        result = total_resistance(2500, "mud_min", 0)
+        assert result == pytest.approx(2500 / 3)
 
     def test_uphill_adds_resistance(self):
-        flat = total_resistance(2000, "deep_mud", 0)
-        uphill = total_resistance(2000, "deep_mud", 10)
+        flat = total_resistance(2500, "mud_min", 0)
+        uphill = total_resistance(2500, "mud_min", 10)
         assert uphill > flat
 
     def test_downhill_reduces_resistance(self):
-        flat = total_resistance(2000, "deep_mud", 0)
-        downhill = total_resistance(2000, "deep_mud", -10)
+        flat = total_resistance(2500, "mud_min", 0)
+        downhill = total_resistance(2500, "mud_min", -10)
         assert downhill < flat
+
+    def test_includes_damage(self):
+        no_damage = total_resistance(2500, "mud_min", 0, damaged_wheels=0)
+        with_damage = total_resistance(2500, "mud_min", 0, damaged_wheels=2)
+        assert with_damage - no_damage == pytest.approx(2500 * 2 / 4)
 
 
 class TestSnatchBlocks:
@@ -124,32 +145,27 @@ class TestEffectivePull:
 
 class TestIsWinchSufficient:
     def test_easy_recovery(self):
-        # 4000kg winch, 2000kg car on wet grass, flat
-        result = is_winch_sufficient(4000, 2000, "wet_grass", 0, 0)
+        result = is_winch_sufficient(4500, 2500, "grass_min", 0, 0)
         assert result["is_sufficient"] is True
-        assert result["total_resistance_kg"] == pytest.approx(200.0)
 
-    def test_impossible_without_blocks(self):
-        # 4000kg winch, 3500kg vehicle in bog, 15° uphill
-        result = is_winch_sufficient(4000, 3500, "bog", 15, 0)
+    def test_insufficient_without_blocks(self):
+        result = is_winch_sufficient(4500, 3500, "bog_axle", 15, 0)
         assert result["is_sufficient"] is False
 
     def test_blocks_make_it_possible(self):
-        # Same scenario but with 2 snatch blocks (4x advantage)
-        result = is_winch_sufficient(4000, 3500, "bog", 15, 2)
+        result = is_winch_sufficient(4500, 3500, "bog_axle", 15, 1)
         assert result["is_sufficient"] is True
-        assert result["mechanical_advantage"] == 4
+        assert result["mechanical_advantage"] == 2
 
     def test_safety_factor_applied(self):
-        result = is_winch_sufficient(4000, 2000, "deep_mud", 0, 0, safety_factor=1.5)
-        # Resistance = 1000kg, with 1.5 safety = 1500kg required
-        assert result["required_pull_kg"] == pytest.approx(1500.0)
+        result = is_winch_sufficient(4500, 2500, "mud_min", 0, 0, safety_factor=1.5)
+        expected_required = (2500 / 3) * 1.5
+        assert result["required_pull_kg"] == pytest.approx(expected_required)
 
-    def test_margin_calculation(self):
-        result = is_winch_sufficient(4000, 2000, "tarmac", 0, 0)
-        # Resistance = 20kg, with 1.25 safety = 25kg required
-        # Margin = 4000 - 25 = 3975
-        assert result["margin_kg"] == pytest.approx(3975.0)
+    def test_damage_included_in_assessment(self):
+        result = is_winch_sufficient(4500, 2500, "mud_min", 0, 0, damaged_wheels=2)
+        expected_damage = 2500 * 2 / 4
+        assert result["damage_resistance_kg"] == pytest.approx(expected_damage)
 
 
 class TestUnitConversions:

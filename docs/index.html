@@ -112,6 +112,9 @@
             .form-grid {
                 grid-template-columns: 1fr;
             }
+            .tabs {
+                flex-wrap: wrap;
+            }
         }
 
         .form-group {
@@ -322,7 +325,7 @@
 <body>
     <div class="container">
         <h1>🪝 Winch Calculator</h1>
-        <p class="subtitle">Vehicle recovery resistance &amp; pulling power assessment</p>
+        <p class="subtitle">Vehicle recovery resistance &amp; pulling power assessment — IVR method</p>
 
         <div class="tabs">
             <button class="tab active" data-tab="assess">Can I Winch It?</button>
@@ -337,11 +340,11 @@
                 <div class="preset-grid" id="presets-assess">
                     <button class="preset-btn" data-weight="1200">Suzuki Jimny<span class="weight">~1,200 kg</span></button>
                     <button class="preset-btn" data-weight="1800">Toyota Hilux<span class="weight">~1,800 kg</span></button>
-                    <button class="preset-btn" data-weight="2200">Land Rover Defender 90<span class="weight">~2,200 kg</span></button>
-                    <button class="preset-btn" data-weight="2500">Land Rover Discovery<span class="weight">~2,500 kg</span></button>
+                    <button class="preset-btn" data-weight="2200">Defender 90<span class="weight">~2,200 kg</span></button>
+                    <button class="preset-btn" data-weight="2500">Discovery<span class="weight">~2,500 kg</span></button>
                     <button class="preset-btn" data-weight="2700">Ford Ranger<span class="weight">~2,700 kg</span></button>
                     <button class="preset-btn" data-weight="3050">Defender 130<span class="weight">~3,050 kg</span></button>
-                    <button class="preset-btn" data-weight="3500">Land Rover Defender 110 (loaded)<span class="weight">~3,500 kg</span></button>
+                    <button class="preset-btn" data-weight="3500">Defender 110 (loaded)<span class="weight">~3,500 kg</span></button>
                     <button class="preset-btn" data-weight="7500">7.5t Recovery Truck<span class="weight">~7,500 kg</span></button>
                 </div>
                 <div class="form-grid">
@@ -351,18 +354,64 @@
                         <span class="unit-hint">kg (loaded weight inc. cargo/water)</span>
                     </div>
                     <div class="form-group">
-                        <label for="surface">Surface Condition</label>
+                        <label for="surface">Surface / Rolling Resistance</label>
                         <select id="surface">
-                            <option value="0.01">Tarmac / Concrete (×0.01)</option>
-                            <option value="0.02">Compacted Gravel (×0.02)</option>
-                            <option value="0.05">Firm Dry Grass (×0.05)</option>
-                            <option value="0.10">Wet Grass / Soft Ground (×0.10)</option>
-                            <option value="0.15">Loose Dry Sand (×0.15)</option>
-                            <option value="0.25">Wet Sand / Shingle (×0.25)</option>
-                            <option value="0.33" selected>Shallow Mud — Axle Depth (×0.33)</option>
-                            <option value="0.50">Deep Mud / Clay — Above Axle (×0.50)</option>
-                            <option value="0.75">Marsh / Bog (×0.75)</option>
-                            <option value="1.00">Fully Submerged / Deeply Bogged (×1.00)</option>
+                            <optgroup label="Hard Surfaces">
+                                <option value="0.04">Smooth Road — W÷25</option>
+                            </optgroup>
+                            <optgroup label="Grass">
+                                <option value="0.1429">Grass MIN (firm/dry) — W÷7</option>
+                                <option value="0.25">Grass MAX (soft/wet) — W÷4</option>
+                            </optgroup>
+                            <optgroup label="Gravel">
+                                <option value="0.1429">Gravel MIN (compacted) — W÷7</option>
+                                <option value="0.2">Gravel MAX (loose) — W÷5</option>
+                            </optgroup>
+                            <optgroup label="Beach">
+                                <option value="0.3333">Beach Shingle — W÷3</option>
+                            </optgroup>
+                            <optgroup label="Sand">
+                                <option value="0.1667">Sand MIN (firm/damp) — W÷6</option>
+                                <option value="0.5">Sand MAX (soft/deep) — W÷2</option>
+                            </optgroup>
+                            <optgroup label="Mud">
+                                <option value="0.3333" selected>Mud MIN (shallow) — W÷3</option>
+                                <option value="0.5">Mud MAX (deep) — W÷2</option>
+                            </optgroup>
+                            <optgroup label="Clay">
+                                <option value="0.5">Soft Clay — W÷2</option>
+                            </optgroup>
+                            <optgroup label="Bog (by depth)">
+                                <option value="1.0">Bog to Axle — W×1</option>
+                                <option value="2.0">Bog to Wheel Top — W×2</option>
+                                <option value="3.0">Bog to Radiator — W×3</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Vehicle Damage</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="damaged-wheels">Non-Rolling Wheels</label>
+                        <select id="damaged-wheels">
+                            <option value="0" selected>0 — all wheels roll freely</option>
+                            <option value="1">1 — one wheel seized/locked/missing</option>
+                            <option value="2">2 — two wheels seized/locked/missing</option>
+                            <option value="3">3 — three wheels seized/locked/missing</option>
+                            <option value="4">4 — all wheels locked (e.g., on its side)</option>
+                        </select>
+                        <span class="unit-hint">Seized brakes, flat tyres, broken axle, missing wheel</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="total-wheels">Total Wheels</label>
+                        <select id="total-wheels">
+                            <option value="4" selected>4 (car / 4×4 / van)</option>
+                            <option value="6">6 (rigid truck / 6×4)</option>
+                            <option value="8">8 (8-wheeler)</option>
+                            <option value="10">10 (artic tractor unit)</option>
                         </select>
                     </div>
                 </div>
@@ -417,11 +466,15 @@
                     <span class="result-value" id="r-rolling">-</span>
                 </div>
                 <div class="result-row">
+                    <span class="result-label">Damage Resistance</span>
+                    <span class="result-value" id="r-damage">-</span>
+                </div>
+                <div class="result-row">
                     <span class="result-label">Gradient Resistance</span>
                     <span class="result-value" id="r-gradient">-</span>
                 </div>
-                <div class="result-row">
-                    <span class="result-label">Total Resistance</span>
+                <div class="result-row" style="border-top: 2px solid var(--secondary); padding-top: 0.8rem;">
+                    <span class="result-label"><strong>Total Resistance</strong></span>
                     <span class="result-value" id="r-total">-</span>
                 </div>
                 <div class="result-row">
@@ -465,18 +518,57 @@
                         <span class="unit-hint">kg</span>
                     </div>
                     <div class="form-group">
-                        <label for="rec-surface">Surface Condition</label>
+                        <label for="rec-surface">Surface / Rolling Resistance</label>
                         <select id="rec-surface">
-                            <option value="0.01">Tarmac / Concrete (×0.01)</option>
-                            <option value="0.02">Compacted Gravel (×0.02)</option>
-                            <option value="0.05">Firm Dry Grass (×0.05)</option>
-                            <option value="0.10">Wet Grass / Soft Ground (×0.10)</option>
-                            <option value="0.15">Loose Dry Sand (×0.15)</option>
-                            <option value="0.25">Wet Sand / Shingle (×0.25)</option>
-                            <option value="0.33" selected>Shallow Mud — Axle Depth (×0.33)</option>
-                            <option value="0.50">Deep Mud / Clay — Above Axle (×0.50)</option>
-                            <option value="0.75">Marsh / Bog (×0.75)</option>
-                            <option value="1.00">Fully Submerged / Deeply Bogged (×1.00)</option>
+                            <optgroup label="Hard Surfaces">
+                                <option value="0.04">Smooth Road — W÷25</option>
+                            </optgroup>
+                            <optgroup label="Grass">
+                                <option value="0.1429">Grass MIN (firm/dry) — W÷7</option>
+                                <option value="0.25">Grass MAX (soft/wet) — W÷4</option>
+                            </optgroup>
+                            <optgroup label="Gravel">
+                                <option value="0.1429">Gravel MIN (compacted) — W÷7</option>
+                                <option value="0.2">Gravel MAX (loose) — W÷5</option>
+                            </optgroup>
+                            <optgroup label="Beach">
+                                <option value="0.3333">Beach Shingle — W÷3</option>
+                            </optgroup>
+                            <optgroup label="Sand">
+                                <option value="0.1667">Sand MIN (firm/damp) — W÷6</option>
+                                <option value="0.5">Sand MAX (soft/deep) — W÷2</option>
+                            </optgroup>
+                            <optgroup label="Mud">
+                                <option value="0.3333" selected>Mud MIN (shallow) — W÷3</option>
+                                <option value="0.5">Mud MAX (deep) — W÷2</option>
+                            </optgroup>
+                            <optgroup label="Clay">
+                                <option value="0.5">Soft Clay — W÷2</option>
+                            </optgroup>
+                            <optgroup label="Bog (by depth)">
+                                <option value="1.0">Bog to Axle — W×1</option>
+                                <option value="2.0">Bog to Wheel Top — W×2</option>
+                                <option value="3.0">Bog to Radiator — W×3</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="rec-damaged">Non-Rolling Wheels</label>
+                        <select id="rec-damaged">
+                            <option value="0" selected>0</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="rec-total-wheels">Total Wheels</label>
+                        <select id="rec-total-wheels">
+                            <option value="4" selected>4</option>
+                            <option value="6">6</option>
+                            <option value="8">8</option>
+                            <option value="10">10</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -501,7 +593,19 @@
             <div class="card results-section" id="results-recommend">
                 <h2>Minimum Requirements</h2>
                 <div class="result-row">
-                    <span class="result-label">Total Resistance</span>
+                    <span class="result-label">Rolling Resistance</span>
+                    <span class="result-value" id="rec-r-rolling">-</span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">Damage Resistance</span>
+                    <span class="result-value" id="rec-r-damage">-</span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">Gradient Resistance</span>
+                    <span class="result-value" id="rec-r-gradient">-</span>
+                </div>
+                <div class="result-row" style="border-top: 2px solid var(--secondary); padding-top: 0.8rem;">
+                    <span class="result-label"><strong>Total Resistance</strong></span>
                     <span class="result-value" id="rec-total">-</span>
                 </div>
                 <div class="result-row">
@@ -533,18 +637,57 @@
                         <span class="unit-hint">kg</span>
                     </div>
                     <div class="form-group">
-                        <label for="cmp-surface">Surface Condition</label>
+                        <label for="cmp-surface">Surface / Rolling Resistance</label>
                         <select id="cmp-surface">
-                            <option value="0.01">Tarmac / Concrete (×0.01)</option>
-                            <option value="0.02">Compacted Gravel (×0.02)</option>
-                            <option value="0.05">Firm Dry Grass (×0.05)</option>
-                            <option value="0.10">Wet Grass / Soft Ground (×0.10)</option>
-                            <option value="0.15">Loose Dry Sand (×0.15)</option>
-                            <option value="0.25">Wet Sand / Shingle (×0.25)</option>
-                            <option value="0.33" selected>Shallow Mud — Axle Depth (×0.33)</option>
-                            <option value="0.50">Deep Mud / Clay — Above Axle (×0.50)</option>
-                            <option value="0.75">Marsh / Bog (×0.75)</option>
-                            <option value="1.00">Fully Submerged / Deeply Bogged (×1.00)</option>
+                            <optgroup label="Hard Surfaces">
+                                <option value="0.04">Smooth Road — W÷25</option>
+                            </optgroup>
+                            <optgroup label="Grass">
+                                <option value="0.1429">Grass MIN (firm/dry) — W÷7</option>
+                                <option value="0.25">Grass MAX (soft/wet) — W÷4</option>
+                            </optgroup>
+                            <optgroup label="Gravel">
+                                <option value="0.1429">Gravel MIN (compacted) — W÷7</option>
+                                <option value="0.2">Gravel MAX (loose) — W÷5</option>
+                            </optgroup>
+                            <optgroup label="Beach">
+                                <option value="0.3333">Beach Shingle — W÷3</option>
+                            </optgroup>
+                            <optgroup label="Sand">
+                                <option value="0.1667">Sand MIN (firm/damp) — W÷6</option>
+                                <option value="0.5">Sand MAX (soft/deep) — W÷2</option>
+                            </optgroup>
+                            <optgroup label="Mud">
+                                <option value="0.3333" selected>Mud MIN (shallow) — W÷3</option>
+                                <option value="0.5">Mud MAX (deep) — W÷2</option>
+                            </optgroup>
+                            <optgroup label="Clay">
+                                <option value="0.5">Soft Clay — W÷2</option>
+                            </optgroup>
+                            <optgroup label="Bog (by depth)">
+                                <option value="1.0">Bog to Axle — W×1</option>
+                                <option value="2.0">Bog to Wheel Top — W×2</option>
+                                <option value="3.0">Bog to Radiator — W×3</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="cmp-damaged">Non-Rolling Wheels</label>
+                        <select id="cmp-damaged">
+                            <option value="0" selected>0</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="cmp-total-wheels">Total Wheels</label>
+                        <select id="cmp-total-wheels">
+                            <option value="4" selected>4</option>
+                            <option value="6">6</option>
+                            <option value="8">8</option>
+                            <option value="10">10</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -583,13 +726,18 @@
         </div>
 
         <div class="info-box">
-            <strong>Reference:</strong> Calculations based on the
+            <strong>IVR Formula:</strong> Winch Power Required = Rolling Resistance + Damage Resistance + Gradient Resistance<br>
+            <strong>Rolling:</strong> W × surface factor &nbsp;|&nbsp;
+            <strong>Damage:</strong> W × (damaged wheels ÷ total wheels) &nbsp;|&nbsp;
+            <strong>Gradient:</strong> W ÷ 60 × slope°<br><br>
+            <strong>Reference:</strong>
             <a href="https://www.theivrgroup.com/sites/default/files/public-documents/2023-10/Resistance%20Card.pdf" target="_blank" rel="noopener">
-                IVR Group Resistance Card
-            </a>.<br>
-            <strong>Note:</strong> These calculations provide estimates only. Real-world conditions
-            vary — always assess the scene, use rated equipment, and never exceed your winch's SWL.
-            The safety factor accounts for dynamic loads, friction losses in pulleys, and unseen hazards.
+                IVR Group Resistance Card (PDF)
+            </a><br>
+            <strong>Compliance:</strong> Supports PUWER Reg 4 (equipment suitability) risk assessment.
+            Equipment must be rated for the task — never exceed SWL.<br>
+            <strong>Note:</strong> These are estimates. Always assess the scene, use rated equipment,
+            keep bystanders clear, and use a winch line damper.
         </div>
 
         <footer>
@@ -599,19 +747,47 @@
     </div>
 
     <script>
-        // --- Core calculation functions ---
+        // =================================================================
+        // IVR Resistance Formulas
+        // =================================================================
+
+        /**
+         * Rolling Resistance = W × coefficient
+         * Coefficient from IVR resistance card (W÷n or W×n)
+         */
         function calcRollingResistance(gvw, coefficient) {
             return gvw * coefficient;
         }
 
+        /**
+         * Damage Resistance = W × (damaged_wheels / total_wheels)
+         * IVR: accounts for seized/locked/missing wheels
+         */
+        function calcDamageResistance(gvw, damagedWheels, totalWheels) {
+            if (totalWheels <= 0 || damagedWheels < 0) return 0;
+            return gvw * (damagedWheels / totalWheels);
+        }
+
+        /**
+         * Gradient Resistance = W ÷ 60 × slope (degrees)
+         * IVR linear approximation for field use
+         */
         function calcGradientResistance(gvw, slopeDeg) {
-            return gvw * Math.sin(slopeDeg * Math.PI / 180);
+            return (gvw / 60) * slopeDeg;
         }
 
-        function calcTotalResistance(gvw, coefficient, slopeDeg) {
-            return calcRollingResistance(gvw, coefficient) + calcGradientResistance(gvw, slopeDeg);
+        /**
+         * Total Resistance = Rolling + Damage + Gradient
+         */
+        function calcTotalResistance(gvw, coefficient, slopeDeg, damagedWheels, totalWheels) {
+            return calcRollingResistance(gvw, coefficient) +
+                   calcDamageResistance(gvw, damagedWheels, totalWheels) +
+                   calcGradientResistance(gvw, slopeDeg);
         }
 
+        /**
+         * Effective Pull = winch capacity × 2^blocks
+         */
         function calcEffectivePull(winchCapacity, numBlocks) {
             return winchCapacity * Math.pow(2, numBlocks);
         }
@@ -620,7 +796,9 @@
             return val.toLocaleString('en-GB', { maximumFractionDigits: 0 }) + ' kg';
         }
 
-        // --- Tab switching ---
+        // =================================================================
+        // Tab switching
+        // =================================================================
         document.querySelectorAll('.tab').forEach(tab => {
             tab.addEventListener('click', () => {
                 document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -630,7 +808,9 @@
             });
         });
 
-        // --- Preset buttons ---
+        // =================================================================
+        // Preset buttons
+        // =================================================================
         function setupPresets(containerId, inputId) {
             document.getElementById(containerId).addEventListener('click', (e) => {
                 const btn = e.target.closest('.preset-btn');
@@ -642,18 +822,23 @@
         setupPresets('presets-recommend', 'rec-gvw');
         setupPresets('presets-compare', 'cmp-gvw');
 
-        // --- Tab 1: Assessment ---
+        // =================================================================
+        // Tab 1: Assessment
+        // =================================================================
         document.getElementById('btn-assess').addEventListener('click', () => {
             const gvw = parseFloat(document.getElementById('gvw').value) || 0;
             const coefficient = parseFloat(document.getElementById('surface').value);
+            const damagedWheels = parseInt(document.getElementById('damaged-wheels').value);
+            const totalWheels = parseInt(document.getElementById('total-wheels').value);
             const slope = parseFloat(document.getElementById('slope').value) || 0;
             const safetyFactor = parseFloat(document.getElementById('safety').value);
             const winchCapacity = parseFloat(document.getElementById('winch').value) || 0;
             const numBlocks = parseInt(document.getElementById('blocks').value);
 
             const rolling = calcRollingResistance(gvw, coefficient);
+            const damage = calcDamageResistance(gvw, damagedWheels, totalWheels);
             const gradient = calcGradientResistance(gvw, slope);
-            const total = rolling + gradient;
+            const total = rolling + damage + gradient;
             const required = total * safetyFactor;
             const mechanicalAdvantage = Math.pow(2, numBlocks);
             const effective = winchCapacity * mechanicalAdvantage;
@@ -661,6 +846,7 @@
             const marginPct = required > 0 ? (margin / required * 100) : 0;
 
             document.getElementById('r-rolling').textContent = formatKg(rolling);
+            document.getElementById('r-damage').textContent = formatKg(damage);
             document.getElementById('r-gradient').textContent = formatKg(gradient);
             document.getElementById('r-total').textContent = formatKg(total);
             document.getElementById('r-required').textContent = formatKg(required);
@@ -677,22 +863,32 @@
                 verdict.textContent = '⚠️ MARGINAL — Sufficient but consider adding a snatch block';
             } else {
                 verdict.className = 'verdict danger';
-                verdict.textContent = '❌ INSUFFICIENT — Winch cannot safely complete this recovery';
+                verdict.textContent = '❌ INSUFFICIENT — Do not attempt. Add rigging or call for heavier equipment.';
             }
 
             document.getElementById('results-assess').style.display = 'block';
         });
 
-        // --- Tab 2: Recommendations ---
+        // =================================================================
+        // Tab 2: Recommendations
+        // =================================================================
         document.getElementById('btn-recommend').addEventListener('click', () => {
             const gvw = parseFloat(document.getElementById('rec-gvw').value) || 0;
             const coefficient = parseFloat(document.getElementById('rec-surface').value);
+            const damagedWheels = parseInt(document.getElementById('rec-damaged').value);
+            const totalWheels = parseInt(document.getElementById('rec-total-wheels').value);
             const slope = parseFloat(document.getElementById('rec-slope').value) || 0;
             const safetyFactor = parseFloat(document.getElementById('rec-safety').value);
 
-            const total = calcTotalResistance(gvw, coefficient, slope);
+            const rolling = calcRollingResistance(gvw, coefficient);
+            const damage = calcDamageResistance(gvw, damagedWheels, totalWheels);
+            const gradient = calcGradientResistance(gvw, slope);
+            const total = rolling + damage + gradient;
             const required = total * safetyFactor;
 
+            document.getElementById('rec-r-rolling').textContent = formatKg(rolling);
+            document.getElementById('rec-r-damage').textContent = formatKg(damage);
+            document.getElementById('rec-r-gradient').textContent = formatKg(gradient);
             document.getElementById('rec-total').textContent = formatKg(total);
             document.getElementById('rec-required').textContent = formatKg(required);
 
@@ -720,21 +916,25 @@
             }
 
             if (!found) {
-                html += '⚠️ This recovery exceeds typical equipment capabilities. Consider specialist recovery.';
+                html += '⚠️ This recovery exceeds typical equipment capabilities. Consider specialist heavy recovery.';
             }
 
             document.getElementById('recommendation').innerHTML = html;
             document.getElementById('results-recommend').style.display = 'block';
         });
 
-        // --- Tab 3: Compare ---
+        // =================================================================
+        // Tab 3: Compare Rigging
+        // =================================================================
         document.getElementById('btn-compare').addEventListener('click', () => {
             const gvw = parseFloat(document.getElementById('cmp-gvw').value) || 0;
             const coefficient = parseFloat(document.getElementById('cmp-surface').value);
+            const damagedWheels = parseInt(document.getElementById('cmp-damaged').value);
+            const totalWheels = parseInt(document.getElementById('cmp-total-wheels').value);
             const slope = parseFloat(document.getElementById('cmp-slope').value) || 0;
             const winchCapacity = parseFloat(document.getElementById('cmp-winch').value) || 0;
 
-            const total = calcTotalResistance(gvw, coefficient, slope);
+            const total = calcTotalResistance(gvw, coefficient, slope, damagedWheels, totalWheels);
             const required = total * 1.25; // standard safety factor
 
             document.getElementById('cmp-required').textContent = formatKg(required);
