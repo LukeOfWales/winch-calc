@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Winch Calculator - Vehicle Recovery</title>
-    <link rel="stylesheet" href="https://pyscript.net/releases/2024.1.1/core.css">
-    <script type="module" src="https://pyscript.net/releases/2024.1.1/core.js"></script>
     <style>
         :root {
             --bg: #1a1a2e;
@@ -34,7 +32,7 @@
         }
 
         .container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
         }
 
@@ -50,6 +48,44 @@
             color: var(--text-muted);
             margin-bottom: 2rem;
             font-size: 0.9rem;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid var(--secondary);
+            padding-bottom: 0;
+        }
+
+        .tab {
+            padding: 0.6rem 1.2rem;
+            background: transparent;
+            color: var(--text-muted);
+            border: none;
+            border-bottom: 2px solid transparent;
+            font-size: 0.95rem;
+            cursor: pointer;
+            margin-bottom: -2px;
+            transition: all 0.2s;
+        }
+
+        .tab:hover {
+            color: var(--text);
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+            font-weight: 600;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
         }
 
         .card {
@@ -111,7 +147,7 @@
             margin-top: 0.2rem;
         }
 
-        button {
+        button.calc-btn {
             width: 100%;
             padding: 0.8rem;
             background: var(--primary);
@@ -125,11 +161,11 @@
             transition: opacity 0.2s;
         }
 
-        button:hover {
+        button.calc-btn:hover {
             opacity: 0.9;
         }
 
-        #results {
+        .results-section {
             display: none;
         }
 
@@ -179,6 +215,84 @@
             border: 1px solid var(--danger);
         }
 
+        .recommendation {
+            background: rgba(15, 52, 96, 0.5);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .recommendation strong {
+            color: var(--primary);
+        }
+
+        .compare-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .compare-table th,
+        .compare-table td {
+            padding: 0.6rem 0.8rem;
+            text-align: left;
+            border-bottom: 1px solid var(--secondary);
+        }
+
+        .compare-table th {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .compare-table td {
+            font-size: 0.9rem;
+        }
+
+        .compare-table tr.sufficient td {
+            color: var(--success);
+        }
+
+        .compare-table tr.insufficient td {
+            color: var(--danger);
+        }
+
+        .compare-table tr.marginal td {
+            color: var(--warning);
+        }
+
+        .preset-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .preset-btn {
+            padding: 0.5rem;
+            background: var(--bg);
+            border: 1px solid var(--secondary);
+            border-radius: 6px;
+            color: var(--text);
+            cursor: pointer;
+            font-size: 0.8rem;
+            text-align: center;
+            transition: border-color 0.2s;
+        }
+
+        .preset-btn:hover {
+            border-color: var(--primary);
+        }
+
+        .preset-btn .weight {
+            display: block;
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            margin-top: 0.2rem;
+        }
+
         .info-box {
             background: rgba(15, 52, 96, 0.5);
             border-radius: 8px;
@@ -210,105 +324,262 @@
         <h1>🪝 Winch Calculator</h1>
         <p class="subtitle">Vehicle recovery resistance &amp; pulling power assessment</p>
 
-        <div class="card">
-            <h2>Vehicle Details</h2>
-            <div class="form-grid">
-                <div class="form-group">
-                    <label for="gvw">Gross Vehicle Weight</label>
-                    <input type="number" id="gvw" value="2500" min="0" step="100">
-                    <span class="unit-hint">kg (loaded weight including cargo/water)</span>
+        <div class="tabs">
+            <button class="tab active" data-tab="assess">Can I Winch It?</button>
+            <button class="tab" data-tab="recommend">What Do I Need?</button>
+            <button class="tab" data-tab="compare">Compare Rigging</button>
+        </div>
+
+        <!-- TAB 1: Assessment -->
+        <div class="tab-content active" id="tab-assess">
+            <div class="card">
+                <h2>Vehicle</h2>
+                <div class="preset-grid" id="presets-assess">
+                    <button class="preset-btn" data-weight="1200">Suzuki Jimny<span class="weight">~1,200 kg</span></button>
+                    <button class="preset-btn" data-weight="1800">Toyota Hilux<span class="weight">~1,800 kg</span></button>
+                    <button class="preset-btn" data-weight="2200">Land Rover Defender 90<span class="weight">~2,200 kg</span></button>
+                    <button class="preset-btn" data-weight="2500">Land Rover Discovery<span class="weight">~2,500 kg</span></button>
+                    <button class="preset-btn" data-weight="2700">Ford Ranger<span class="weight">~2,700 kg</span></button>
+                    <button class="preset-btn" data-weight="3050">Defender 130<span class="weight">~3,050 kg</span></button>
+                    <button class="preset-btn" data-weight="3500">Land Rover Defender 110 (loaded)<span class="weight">~3,500 kg</span></button>
+                    <button class="preset-btn" data-weight="7500">7.5t Recovery Truck<span class="weight">~7,500 kg</span></button>
                 </div>
-                <div class="form-group">
-                    <label for="surface">Surface Condition</label>
-                    <select id="surface">
-                        <option value="tarmac">Tarmac / Concrete (0.01)</option>
-                        <option value="gravel">Compacted Gravel (0.02)</option>
-                        <option value="firm_grass">Firm Dry Grass (0.05)</option>
-                        <option value="wet_grass">Wet Grass / Soft Ground (0.10)</option>
-                        <option value="sand">Loose Dry Sand (0.15)</option>
-                        <option value="wet_sand">Wet Sand / Shingle (0.25)</option>
-                        <option value="shallow_mud" selected>Shallow Mud - Axle Depth (0.33)</option>
-                        <option value="deep_mud">Deep Mud / Clay - Above Axle (0.50)</option>
-                        <option value="bog">Marsh / Bog (0.75)</option>
-                        <option value="submerged">Fully Submerged / Deeply Bogged (1.00)</option>
-                    </select>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="gvw">Gross Vehicle Weight</label>
+                        <input type="number" id="gvw" value="2500" min="0" step="100">
+                        <span class="unit-hint">kg (loaded weight inc. cargo/water)</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="surface">Surface Condition</label>
+                        <select id="surface">
+                            <option value="0.01">Tarmac / Concrete (×0.01)</option>
+                            <option value="0.02">Compacted Gravel (×0.02)</option>
+                            <option value="0.05">Firm Dry Grass (×0.05)</option>
+                            <option value="0.10">Wet Grass / Soft Ground (×0.10)</option>
+                            <option value="0.15">Loose Dry Sand (×0.15)</option>
+                            <option value="0.25">Wet Sand / Shingle (×0.25)</option>
+                            <option value="0.33" selected>Shallow Mud — Axle Depth (×0.33)</option>
+                            <option value="0.50">Deep Mud / Clay — Above Axle (×0.50)</option>
+                            <option value="0.75">Marsh / Bog (×0.75)</option>
+                            <option value="1.00">Fully Submerged / Deeply Bogged (×1.00)</option>
+                        </select>
+                    </div>
                 </div>
+            </div>
+
+            <div class="card">
+                <h2>Conditions</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="slope">Slope Angle</label>
+                        <input type="number" id="slope" value="0" min="-45" max="45" step="1">
+                        <span class="unit-hint">degrees (positive = pulling uphill)</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="safety">Safety Factor</label>
+                        <select id="safety">
+                            <option value="1.0">1.0× (no margin — not recommended)</option>
+                            <option value="1.25" selected>1.25× (standard — 25% margin)</option>
+                            <option value="1.5">1.5× (conservative — 50% margin)</option>
+                            <option value="2.0">2.0× (very conservative — 100% margin)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Winch Setup</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="winch">Winch Rated Capacity</label>
+                        <input type="number" id="winch" value="4500" min="0" step="100">
+                        <span class="unit-hint">kg (check winch spec plate)</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="blocks">Snatch Blocks / Pulleys</label>
+                        <select id="blocks">
+                            <option value="0">None (1× pull)</option>
+                            <option value="1">1 block (2× pull, ½ speed)</option>
+                            <option value="2">2 blocks (4× pull, ¼ speed)</option>
+                            <option value="3">3 blocks (8× pull, ⅛ speed)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <button class="calc-btn" id="btn-assess">Calculate</button>
+
+            <div class="card results-section" id="results-assess">
+                <h2>Results</h2>
+                <div class="result-row">
+                    <span class="result-label">Rolling Resistance</span>
+                    <span class="result-value" id="r-rolling">-</span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">Gradient Resistance</span>
+                    <span class="result-value" id="r-gradient">-</span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">Total Resistance</span>
+                    <span class="result-value" id="r-total">-</span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">Required Pull (with safety factor)</span>
+                    <span class="result-value" id="r-required">-</span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">Winch Effective Pull</span>
+                    <span class="result-value" id="r-effective">-</span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">Mechanical Advantage</span>
+                    <span class="result-value" id="r-advantage">-</span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">Margin</span>
+                    <span class="result-value" id="r-margin">-</span>
+                </div>
+                <div id="verdict-assess" class="verdict"></div>
             </div>
         </div>
 
-        <div class="card">
-            <h2>Conditions</h2>
-            <div class="form-grid">
-                <div class="form-group">
-                    <label for="slope">Slope Angle</label>
-                    <input type="number" id="slope" value="0" min="-45" max="45" step="1">
-                    <span class="unit-hint">degrees (positive = pulling uphill)</span>
+        <!-- TAB 2: What Do I Need? -->
+        <div class="tab-content" id="tab-recommend">
+            <div class="card">
+                <h2>Recovery Scenario</h2>
+                <div class="preset-grid" id="presets-recommend">
+                    <button class="preset-btn" data-weight="1200">Suzuki Jimny<span class="weight">~1,200 kg</span></button>
+                    <button class="preset-btn" data-weight="1800">Toyota Hilux<span class="weight">~1,800 kg</span></button>
+                    <button class="preset-btn" data-weight="2200">Defender 90<span class="weight">~2,200 kg</span></button>
+                    <button class="preset-btn" data-weight="2500">Discovery<span class="weight">~2,500 kg</span></button>
+                    <button class="preset-btn" data-weight="2700">Ford Ranger<span class="weight">~2,700 kg</span></button>
+                    <button class="preset-btn" data-weight="3050">Defender 130<span class="weight">~3,050 kg</span></button>
+                    <button class="preset-btn" data-weight="3500">Defender 110 (loaded)<span class="weight">~3,500 kg</span></button>
+                    <button class="preset-btn" data-weight="7500">7.5t Recovery Truck<span class="weight">~7,500 kg</span></button>
                 </div>
-                <div class="form-group">
-                    <label for="safety">Safety Factor</label>
-                    <select id="safety">
-                        <option value="1.0">1.0× (no margin - not recommended)</option>
-                        <option value="1.25" selected>1.25× (standard - 25% margin)</option>
-                        <option value="1.5">1.5× (conservative - 50% margin)</option>
-                        <option value="2.0">2.0× (very conservative - 100% margin)</option>
-                    </select>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="rec-gvw">Gross Vehicle Weight</label>
+                        <input type="number" id="rec-gvw" value="2500" min="0" step="100">
+                        <span class="unit-hint">kg</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="rec-surface">Surface Condition</label>
+                        <select id="rec-surface">
+                            <option value="0.01">Tarmac / Concrete (×0.01)</option>
+                            <option value="0.02">Compacted Gravel (×0.02)</option>
+                            <option value="0.05">Firm Dry Grass (×0.05)</option>
+                            <option value="0.10">Wet Grass / Soft Ground (×0.10)</option>
+                            <option value="0.15">Loose Dry Sand (×0.15)</option>
+                            <option value="0.25">Wet Sand / Shingle (×0.25)</option>
+                            <option value="0.33" selected>Shallow Mud — Axle Depth (×0.33)</option>
+                            <option value="0.50">Deep Mud / Clay — Above Axle (×0.50)</option>
+                            <option value="0.75">Marsh / Bog (×0.75)</option>
+                            <option value="1.00">Fully Submerged / Deeply Bogged (×1.00)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="rec-slope">Slope Angle</label>
+                        <input type="number" id="rec-slope" value="0" min="-45" max="45" step="1">
+                        <span class="unit-hint">degrees (positive = uphill)</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="rec-safety">Safety Factor</label>
+                        <select id="rec-safety">
+                            <option value="1.0">1.0×</option>
+                            <option value="1.25" selected>1.25× (standard)</option>
+                            <option value="1.5">1.5× (conservative)</option>
+                            <option value="2.0">2.0× (very conservative)</option>
+                        </select>
+                    </div>
                 </div>
+            </div>
+
+            <button class="calc-btn" id="btn-recommend">What Do I Need?</button>
+
+            <div class="card results-section" id="results-recommend">
+                <h2>Minimum Requirements</h2>
+                <div class="result-row">
+                    <span class="result-label">Total Resistance</span>
+                    <span class="result-value" id="rec-total">-</span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">Required Pull (with safety)</span>
+                    <span class="result-value" id="rec-required">-</span>
+                </div>
+                <div id="recommendation" class="recommendation"></div>
             </div>
         </div>
 
-        <div class="card">
-            <h2>Winch Setup</h2>
-            <div class="form-grid">
-                <div class="form-group">
-                    <label for="winch">Winch Rated Capacity</label>
-                    <input type="number" id="winch" value="4500" min="0" step="100">
-                    <span class="unit-hint">kg (check winch spec plate)</span>
+        <!-- TAB 3: Compare Rigging -->
+        <div class="tab-content" id="tab-compare">
+            <div class="card">
+                <h2>Scenario</h2>
+                <div class="preset-grid" id="presets-compare">
+                    <button class="preset-btn" data-weight="1200">Suzuki Jimny<span class="weight">~1,200 kg</span></button>
+                    <button class="preset-btn" data-weight="1800">Toyota Hilux<span class="weight">~1,800 kg</span></button>
+                    <button class="preset-btn" data-weight="2200">Defender 90<span class="weight">~2,200 kg</span></button>
+                    <button class="preset-btn" data-weight="2500">Discovery<span class="weight">~2,500 kg</span></button>
+                    <button class="preset-btn" data-weight="2700">Ford Ranger<span class="weight">~2,700 kg</span></button>
+                    <button class="preset-btn" data-weight="3050">Defender 130<span class="weight">~3,050 kg</span></button>
+                    <button class="preset-btn" data-weight="3500">Defender 110 (loaded)<span class="weight">~3,500 kg</span></button>
+                    <button class="preset-btn" data-weight="7500">7.5t Recovery Truck<span class="weight">~7,500 kg</span></button>
                 </div>
-                <div class="form-group">
-                    <label for="blocks">Snatch Blocks / Pulleys</label>
-                    <select id="blocks">
-                        <option value="0">None (1× pull)</option>
-                        <option value="1">1 block (2× pull, ½ speed)</option>
-                        <option value="2">2 blocks (4× pull, ¼ speed)</option>
-                        <option value="3">3 blocks (8× pull, ⅛ speed)</option>
-                    </select>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="cmp-gvw">Gross Vehicle Weight</label>
+                        <input type="number" id="cmp-gvw" value="2500" min="0" step="100">
+                        <span class="unit-hint">kg</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="cmp-surface">Surface Condition</label>
+                        <select id="cmp-surface">
+                            <option value="0.01">Tarmac / Concrete (×0.01)</option>
+                            <option value="0.02">Compacted Gravel (×0.02)</option>
+                            <option value="0.05">Firm Dry Grass (×0.05)</option>
+                            <option value="0.10">Wet Grass / Soft Ground (×0.10)</option>
+                            <option value="0.15">Loose Dry Sand (×0.15)</option>
+                            <option value="0.25">Wet Sand / Shingle (×0.25)</option>
+                            <option value="0.33" selected>Shallow Mud — Axle Depth (×0.33)</option>
+                            <option value="0.50">Deep Mud / Clay — Above Axle (×0.50)</option>
+                            <option value="0.75">Marsh / Bog (×0.75)</option>
+                            <option value="1.00">Fully Submerged / Deeply Bogged (×1.00)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="cmp-slope">Slope Angle</label>
+                        <input type="number" id="cmp-slope" value="0" min="-45" max="45" step="1">
+                        <span class="unit-hint">degrees</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="cmp-winch">Winch Rated Capacity</label>
+                        <input type="number" id="cmp-winch" value="4500" min="0" step="100">
+                        <span class="unit-hint">kg</span>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <button id="calculate-btn" py-click="calculate">Calculate</button>
+            <button class="calc-btn" id="btn-compare">Compare All Rigging Options</button>
 
-        <div class="card" id="results">
-            <h2>Results</h2>
-            <div class="result-row">
-                <span class="result-label">Rolling Resistance</span>
-                <span class="result-value" id="r-rolling">-</span>
+            <div class="card results-section" id="results-compare">
+                <h2>Rigging Comparison</h2>
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 0.5rem;">
+                    Required pull: <span id="cmp-required">-</span> (with 1.25× safety)
+                </p>
+                <table class="compare-table">
+                    <thead>
+                        <tr>
+                            <th>Configuration</th>
+                            <th>Effective Pull</th>
+                            <th>Margin</th>
+                            <th>Line Speed</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cmp-tbody"></tbody>
+                </table>
             </div>
-            <div class="result-row">
-                <span class="result-label">Gradient Resistance</span>
-                <span class="result-value" id="r-gradient">-</span>
-            </div>
-            <div class="result-row">
-                <span class="result-label">Total Resistance</span>
-                <span class="result-value" id="r-total">-</span>
-            </div>
-            <div class="result-row">
-                <span class="result-label">Required Pull (with safety factor)</span>
-                <span class="result-value" id="r-required">-</span>
-            </div>
-            <div class="result-row">
-                <span class="result-label">Winch Effective Pull</span>
-                <span class="result-value" id="r-effective">-</span>
-            </div>
-            <div class="result-row">
-                <span class="result-label">Mechanical Advantage</span>
-                <span class="result-value" id="r-advantage">-</span>
-            </div>
-            <div class="result-row">
-                <span class="result-label">Margin</span>
-                <span class="result-value" id="r-margin">-</span>
-            </div>
-            <div id="verdict" class="verdict"></div>
         </div>
 
         <div class="info-box">
@@ -322,77 +593,189 @@
         </div>
 
         <footer>
-            <p>Built with Python &amp; PyScript |
-            <a href="https://github.com/" target="_blank" rel="noopener">View on GitHub</a></p>
+            <p>Built with 🪝 for the recovery community |
+            <a href="https://github.com/LukeOfWales/winch-calc" target="_blank" rel="noopener">View on GitHub</a></p>
         </footer>
     </div>
 
-    <script type="py">
-import math
-from pyscript import document
+    <script>
+        // --- Core calculation functions ---
+        function calcRollingResistance(gvw, coefficient) {
+            return gvw * coefficient;
+        }
 
+        function calcGradientResistance(gvw, slopeDeg) {
+            return gvw * Math.sin(slopeDeg * Math.PI / 180);
+        }
 
-# Surface resistance coefficients (fraction of GVW)
-SURFACES = {
-    "tarmac": 0.01,
-    "gravel": 0.02,
-    "firm_grass": 0.05,
-    "wet_grass": 0.1,
-    "sand": 0.15,
-    "wet_sand": 0.25,
-    "shallow_mud": 0.33,
-    "deep_mud": 0.5,
-    "bog": 0.75,
-    "submerged": 1.0,
-}
+        function calcTotalResistance(gvw, coefficient, slopeDeg) {
+            return calcRollingResistance(gvw, coefficient) + calcGradientResistance(gvw, slopeDeg);
+        }
 
+        function calcEffectivePull(winchCapacity, numBlocks) {
+            return winchCapacity * Math.pow(2, numBlocks);
+        }
 
-def calculate(*args, **kwargs):
-    """Run the winch calculation and update the DOM."""
-    # Read inputs
-    gvw = float(document.querySelector("#gvw").value or 0)
-    surface = document.querySelector("#surface").value
-    slope = float(document.querySelector("#slope").value or 0)
-    safety_factor = float(document.querySelector("#safety").value)
-    winch_capacity = float(document.querySelector("#winch").value or 0)
-    num_blocks = int(document.querySelector("#blocks").value)
+        function formatKg(val) {
+            return val.toLocaleString('en-GB', { maximumFractionDigits: 0 }) + ' kg';
+        }
 
-    # Calculate resistances
-    coefficient = SURFACES.get(surface, 0.33)
-    rolling = gvw * coefficient
-    gradient = gvw * math.sin(math.radians(slope))
-    total = rolling + gradient
+        // --- Tab switching ---
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+            });
+        });
 
-    # Calculate pull
-    required = total * safety_factor
-    mechanical_advantage = 2 ** num_blocks
-    effective = winch_capacity * mechanical_advantage
-    margin = effective - required
-    margin_pct = (margin / required * 100) if required > 0 else 0
+        // --- Preset buttons ---
+        function setupPresets(containerId, inputId) {
+            document.getElementById(containerId).addEventListener('click', (e) => {
+                const btn = e.target.closest('.preset-btn');
+                if (!btn) return;
+                document.getElementById(inputId).value = btn.dataset.weight;
+            });
+        }
+        setupPresets('presets-assess', 'gvw');
+        setupPresets('presets-recommend', 'rec-gvw');
+        setupPresets('presets-compare', 'cmp-gvw');
 
-    # Update DOM
-    document.querySelector("#r-rolling").textContent = f"{rolling:,.0f} kg"
-    document.querySelector("#r-gradient").textContent = f"{gradient:,.0f} kg"
-    document.querySelector("#r-total").textContent = f"{total:,.0f} kg"
-    document.querySelector("#r-required").textContent = f"{required:,.0f} kg"
-    document.querySelector("#r-effective").textContent = f"{effective:,.0f} kg"
-    document.querySelector("#r-advantage").textContent = f"{mechanical_advantage}×"
-    document.querySelector("#r-margin").textContent = f"{margin:,.0f} kg ({margin_pct:+.0f}%)"
+        // --- Tab 1: Assessment ---
+        document.getElementById('btn-assess').addEventListener('click', () => {
+            const gvw = parseFloat(document.getElementById('gvw').value) || 0;
+            const coefficient = parseFloat(document.getElementById('surface').value);
+            const slope = parseFloat(document.getElementById('slope').value) || 0;
+            const safetyFactor = parseFloat(document.getElementById('safety').value);
+            const winchCapacity = parseFloat(document.getElementById('winch').value) || 0;
+            const numBlocks = parseInt(document.getElementById('blocks').value);
 
-    # Verdict
-    verdict_el = document.querySelector("#verdict")
-    if margin >= required * 0.5:
-        verdict_el.className = "verdict safe"
-        verdict_el.textContent = "✅ SAFE — Winch has ample capacity"
-    elif margin >= 0:
-        verdict_el.className = "verdict warning"
-        verdict_el.textContent = "⚠️ MARGINAL — Winch is sufficient but consider adding a snatch block"
-    else:
-        verdict_el.className = "verdict danger"
-        verdict_el.textContent = "❌ INSUFFICIENT — Winch cannot safely complete this recovery"
+            const rolling = calcRollingResistance(gvw, coefficient);
+            const gradient = calcGradientResistance(gvw, slope);
+            const total = rolling + gradient;
+            const required = total * safetyFactor;
+            const mechanicalAdvantage = Math.pow(2, numBlocks);
+            const effective = winchCapacity * mechanicalAdvantage;
+            const margin = effective - required;
+            const marginPct = required > 0 ? (margin / required * 100) : 0;
 
-    # Show results
-    document.querySelector("#results").style.display = "block"
+            document.getElementById('r-rolling').textContent = formatKg(rolling);
+            document.getElementById('r-gradient').textContent = formatKg(gradient);
+            document.getElementById('r-total').textContent = formatKg(total);
+            document.getElementById('r-required').textContent = formatKg(required);
+            document.getElementById('r-effective').textContent = formatKg(effective);
+            document.getElementById('r-advantage').textContent = mechanicalAdvantage + '×';
+            document.getElementById('r-margin').textContent = formatKg(margin) + ' (' + (marginPct >= 0 ? '+' : '') + marginPct.toFixed(0) + '%)';
+
+            const verdict = document.getElementById('verdict-assess');
+            if (margin >= required * 0.5) {
+                verdict.className = 'verdict safe';
+                verdict.textContent = '✅ SAFE — Winch has ample capacity';
+            } else if (margin >= 0) {
+                verdict.className = 'verdict warning';
+                verdict.textContent = '⚠️ MARGINAL — Sufficient but consider adding a snatch block';
+            } else {
+                verdict.className = 'verdict danger';
+                verdict.textContent = '❌ INSUFFICIENT — Winch cannot safely complete this recovery';
+            }
+
+            document.getElementById('results-assess').style.display = 'block';
+        });
+
+        // --- Tab 2: Recommendations ---
+        document.getElementById('btn-recommend').addEventListener('click', () => {
+            const gvw = parseFloat(document.getElementById('rec-gvw').value) || 0;
+            const coefficient = parseFloat(document.getElementById('rec-surface').value);
+            const slope = parseFloat(document.getElementById('rec-slope').value) || 0;
+            const safetyFactor = parseFloat(document.getElementById('rec-safety').value);
+
+            const total = calcTotalResistance(gvw, coefficient, slope);
+            const required = total * safetyFactor;
+
+            document.getElementById('rec-total').textContent = formatKg(total);
+            document.getElementById('rec-required').textContent = formatKg(required);
+
+            // Generate recommendations
+            const commonWinches = [2000, 3000, 4500, 5400, 6000, 8000, 10000, 12000];
+            let html = '<strong>Options to achieve ' + formatKg(required) + ' pull:</strong><br><br>';
+
+            let found = false;
+            for (let blocks = 0; blocks <= 3; blocks++) {
+                const minWinch = required / Math.pow(2, blocks);
+                const suitable = commonWinches.filter(w => w >= minWinch);
+
+                if (suitable.length > 0) {
+                    found = true;
+                    const blockLabel = blocks === 0 ? 'Direct pull (no blocks)' :
+                        blocks === 1 ? '1 snatch block (2× advantage)' :
+                        blocks + ' snatch blocks (' + Math.pow(2, blocks) + '× advantage)';
+
+                    const speed = blocks === 0 ? 'full speed' :
+                        '1/' + Math.pow(2, blocks) + ' speed';
+
+                    html += '• <strong>' + blockLabel + '</strong>: min ' + formatKg(minWinch) +
+                        ' rated winch — e.g. ' + formatKg(suitable[0]) + ' winch (' + speed + ')<br>';
+                }
+            }
+
+            if (!found) {
+                html += '⚠️ This recovery exceeds typical equipment capabilities. Consider specialist recovery.';
+            }
+
+            document.getElementById('recommendation').innerHTML = html;
+            document.getElementById('results-recommend').style.display = 'block';
+        });
+
+        // --- Tab 3: Compare ---
+        document.getElementById('btn-compare').addEventListener('click', () => {
+            const gvw = parseFloat(document.getElementById('cmp-gvw').value) || 0;
+            const coefficient = parseFloat(document.getElementById('cmp-surface').value);
+            const slope = parseFloat(document.getElementById('cmp-slope').value) || 0;
+            const winchCapacity = parseFloat(document.getElementById('cmp-winch').value) || 0;
+
+            const total = calcTotalResistance(gvw, coefficient, slope);
+            const required = total * 1.25; // standard safety factor
+
+            document.getElementById('cmp-required').textContent = formatKg(required);
+
+            const configs = [
+                { label: 'Direct pull — no blocks', blocks: 0, speed: '100%' },
+                { label: '1 snatch block', blocks: 1, speed: '50%' },
+                { label: '2 snatch blocks', blocks: 2, speed: '25%' },
+                { label: '3 snatch blocks', blocks: 3, speed: '12.5%' },
+            ];
+
+            let tbody = '';
+            configs.forEach(cfg => {
+                const effective = calcEffectivePull(winchCapacity, cfg.blocks);
+                const margin = effective - required;
+                const marginPct = required > 0 ? (margin / required * 100) : 0;
+
+                let status, rowClass;
+                if (margin >= required * 0.5) {
+                    status = '✅ Safe';
+                    rowClass = 'sufficient';
+                } else if (margin >= 0) {
+                    status = '⚠️ Marginal';
+                    rowClass = 'marginal';
+                } else {
+                    status = '❌ Insufficient';
+                    rowClass = 'insufficient';
+                }
+
+                tbody += '<tr class="' + rowClass + '">' +
+                    '<td>' + cfg.label + '</td>' +
+                    '<td>' + formatKg(effective) + '</td>' +
+                    '<td>' + (marginPct >= 0 ? '+' : '') + marginPct.toFixed(0) + '%</td>' +
+                    '<td>' + cfg.speed + '</td>' +
+                    '<td>' + status + '</td>' +
+                    '</tr>';
+            });
+
+            document.getElementById('cmp-tbody').innerHTML = tbody;
+            document.getElementById('results-compare').style.display = 'block';
+        });
     </script>
 </body>
 </html>
