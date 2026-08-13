@@ -6,7 +6,7 @@ Helps you determine whether your winching equipment is appropriate for a recover
 
 ## Live Calculator
 
-👉 **[Use the web calculator](https://YOUR_USERNAME.github.io/winch-calc/)** (GitHub Pages)
+👉 **[Use the web calculator](https://lukeofwales.github.io/winch-calc/)** (GitHub Pages)
 
 ## What it calculates
 
