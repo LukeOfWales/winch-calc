@@ -3,6 +3,7 @@ name = "winch-calc"
 version = "0.1.0"
 description = "Winching resistance and pulling power calculator for vehicle recovery"
 readme = "README.md"
+license = "MIT"
 requires-python = ">=3.12"
 dependencies = []
 
